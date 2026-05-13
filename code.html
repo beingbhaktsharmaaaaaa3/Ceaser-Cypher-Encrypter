@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caesar Cipher — Encrypter & Decrypter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e0d;
+    --surface: #131a18;
+    --surface-2: #1a2422;
+    --accent: #00e59b;
+    --accent-dim: #00e59b33;
+    --accent-glow: #00e59b22;
+    --text: #e4ede9;
+    --text-muted: #5e7a70;
+    --danger: #e54b4b;
+    --radius: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Gradient backdrop */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -30%; left: -10%;
+    width: 60vw; height: 60vw;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Mode Toggle */
+  .mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid #1e2b28;
+    width: fit-content;
+  }
+
+  .mode-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.6rem;
+    background: var(--surface);
+    color: var(--text-muted);
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .mode-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .mode-btn:not(.active):hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  /* Shift Control */
+  .shift-section {
+    margin-bottom: 1.8rem;
+  }
+
+  .shift-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .shift-label span {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  .shift-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 3ch;
+    text-align: center;
+  }
+
+  .shift-arrows {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .shift-arrow {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid #1e2b28;
+    background: var(--surface);
+    color: var(--accent);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .shift-arrow:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  .shift-arrow:active { transform: scale(0.92); }
+
+  .slider-track {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 14px var(--accent-dim);
+    transition: box-shadow 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 22px #00e59b55;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: none;
+    cursor: grab;
+    box-shadow: 0 0 14px var(--accent-dim);
+  }
+
+  .tick-marks {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 9px;
+    margin-top: -6px;
+    pointer-events: none;
+  }
+
+  .tick-marks span {
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+    width: 14px;
+    text-align: center;
+  }
+
+  .tick-marks span.active-tick {
+    color: var(--accent);
+    opacity: 1;
+    font-weight: 700;
+  }
+
+  /* Text Areas */
+  .text-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 600px) {
+    .text-section { grid-template-columns: 1fr; }
+  }
+
+  .text-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .text-box label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  textarea {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    background: var(--surface);
+    border: 1px solid #1e2b28;
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 1rem;
+    resize: vertical;
+    min-height: 160px;
+    outline: none;
+    transition: border-color 0.25s;
+  }
+
+  textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  textarea::placeholder { color: #2a3a35; }
+
+  .output-area {
+    position: relative;
+  }
+
+  .output-area textarea {
+    background: #0d1412;
+    color: var(--accent);
+    cursor: default;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 0.6rem; right: 0.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid #1e2b28;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .copy-btn.copied {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* Alphabet Wheel */
+  .wheel-section {
+    margin-top: 0.5rem;
+  }
+
+  .wheel-section h3 {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .wheel-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .wheel-strip {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .letter-cell {
+    width: 30px; height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px solid #1e2b28;
+    background: var(--surface);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+  }
+
+  .letter-cell.highlighted {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-dim);
+    transform: scale(1.1);
+  }
+
+  .letter-cell.mapped {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .wheel-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    margin: 0.2rem 0;
+    letter-spacing: 0.3em;
+  }
+
+  /* Action Row */
+  .action-row {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.85rem 2rem;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 4px 24px var(--accent-dim);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid #1e2b28;
+  }
+
+  .btn-ghost:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  /* Brute Force */
+  .brute-section {
+    border-top: 1px solid #1a2422;
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .brute-section h3 {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .brute-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .brute-grid::-webkit-scrollbar { width: 4px; }
+  .brute-grid::-webkit-scrollbar-track { background: var(--surface); border-radius: 2px; }
+  .brute-grid::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+  .brute-item {
+    font-size: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--surface);
+    border: 1px solid #1a2422;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+
+  .brute-item:hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+
+  .brute-num {
+    color: var(--accent);
+    font-weight: 700;
+    min-width: 2ch;
+    flex-shrink: 0;
+  }
+
+  .brute-text {
+    color: var(--text-muted);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 2rem;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  header, .mode-toggle, .shift-section, .text-section, .action-row, .wheel-section, .brute-section {
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  header { animation-delay: 0.05s; }
+  .mode-toggle { animation-delay: 0.1s; }
+  .shift-section { animation-delay: 0.15s; }
+  .text-section { animation-delay: 0.2s; }
+  .action-row { animation-delay: 0.25s; }
+  .wheel-section { animation-delay: 0.3s; }
+  .brute-section { animation-delay: 0.35s; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Caesar <span>Cipher</span></h1>
+    <p>Encrypt &middot; Decrypt &middot; Crack</p>
+  </header>
+
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="encrypt">Encrypt</button>
+    <button class="mode-btn" data-mode="decrypt">Decrypt</button>
+  </div>
+
+  <div class="shift-section">
+    <div class="shift-label">
+      <span>Shift Value</span>
+      <div class="shift-arrows">
+        <button class="shift-arrow" id="shiftDown">&laquo;</button>
+        <span class="shift-value" id="shiftDisplay">3</span>
+        <button class="shift-arrow" id="shiftUp">&raquo;</button>
+      </div>
+    </div>
+    <div class="slider-track">
+      <input type="range" id="shiftSlider" min="1" max="25" value="3">
+    </div>
+    <div class="tick-marks" id="tickMarks"></div>
+  </div>
+
+  <div class="text-section">
+    <div class="text-box">
+      <label id="inputLabel">Plaintext</label>
+      <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+    </div>
+    <div class="text-box output-area">
+      <label id="outputLabel">Ciphertext</label>
+      <textarea id="outputText" readonly placeholder="Result appears here..."></textarea>
+      <button class="copy-btn" id="copyBtn">Copy</button>
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-primary" id="processBtn">Encrypt</button>
+    <button class="btn btn-ghost" id="clearBtn">Clear</button>
+  </div>
+
+  <div class="wheel-section">
+    <h3>Alphabet Mapping</h3>
+    <div class="wheel-row">
+      <div class="wheel-strip" id="plainRow"></div>
+      <div class="wheel-arrow">&#x25BC; shifted by <span id="wheelShiftNum">3</span> &#x25BC;</div>
+      <div class="wheel-strip" id="cipherRow"></div>
+    </div>
+  </div>
+
+  <div class="brute-section">
+    <h3>Brute Force — All 25 Shifts</h3>
+    <div class="brute-grid" id="bruteGrid"></div>
+  </div>
+
+  <footer>Built by MiMo &middot; Caesar Cipher Tool</footer>
+</div>
+
+<script>
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let mode = 'encrypt';
+  let shift = 3;
+
+  const inputText = document.getElementById('inputText');
+  const outputText = document.getElementById('outputText');
+  const shiftSlider = document.getElementById('shiftSlider');
+  const shiftDisplay = document.getElementById('shiftDisplay');
+  const inputLabel = document.getElementById('inputLabel');
+  const outputLabel = document.getElementById('outputLabel');
+  const processBtn = document.getElementById('processBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const plainRow = document.getElementById('plainRow');
+  const cipherRow = document.getElementById('cipherRow');
+  const wheelShiftNum = document.getElementById('wheelShiftNum');
+  const bruteGrid = document.getElementById('bruteGrid');
+  const tickMarks = document.getElementById('tickMarks');
+
+  // Build tick marks
+  for (let i = 1; i <= 25; i++) {
+    const t = document.createElement('span');
+    t.textContent = i;
+    if (i === 3) t.classList.add('active-tick');
+    t.dataset.val = i;
+    tickMarks.appendChild(t);
+  }
+
+  function caesar(text, s, decrypt = false) {
+    const dir = decrypt ? -s : s;
+    return text.split('').map(ch => {
+      const upper = ch.toUpperCase();
+      const idx = ALPHABET.indexOf(upper);
+      if (idx === -1) return ch;
+      const newIdx = ((idx + dir) % 26 + 26) % 26;
+      const out = ALPHABET[newIdx];
+      return ch === upper ? out : out.toLowerCase();
+    }).join('');
+  }
+
+  function process() {
+    const text = inputText.value;
+    const decrypt = mode === 'decrypt';
+    outputText.value = caesar(text, shift, decrypt);
+    updateBruteForce();
+  }
+
+  function updateWheel() {
+    plainRow.innerHTML = '';
+    cipherRow.innerHTML = '';
+    wheelShiftNum.textContent = shift;
+
+    for (let i = 0; i < 26; i++) {
+      const pCell = document.createElement('div');
+      pCell.className = 'letter-cell';
+      pCell.textContent = ALPHABET[i];
+      plainRow.appendChild(pCell);
+
+      const cCell = document.createElement('div');
+      const ci = mode === 'encrypt' ? (i + shift) % 26 : ((i - shift) % 26 + 26) % 26;
+      cCell.className = 'letter-cell';
+      cCell.textContent = ALPHABET[ci];
+      cipherRow.appendChild(cCell);
+    }
+  }
+
+  function updateTicks() {
+    tickMarks.querySelectorAll('span').forEach(t => {
+      t.classList.toggle('active-tick', parseInt(t.dataset.val) === shift);
+    });
+  }
+
+  function updateBruteForce() {
+    const text = inputText.value.trim();
+    bruteGrid.innerHTML = '';
+    if (!text) return;
+
+    for (let s = 1; s <= 25; s++) {
+      const item = document.createElement('div');
+      item.className = 'brute-item';
+      item.innerHTML = `<span class="brute-num">${s}</span><span class="brute-text">${caesar(text, s, false)}</span>`;
+      item.addEventListener('click', () => {
+        shift = s;
+        shiftSlider.value = s;
+        updateShift();
+        process();
+      });
+      bruteGrid.appendChild(item);
+    }
+  }
+
+  function updateShift() {
+    shift = parseInt(shiftSlider.value);
+    shiftDisplay.textContent = shift;
+    updateWheel();
+    updateTicks();
+  }
+
+  // Mode toggle
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+
+      if (mode === 'encrypt') {
+        inputLabel.textContent = 'Plaintext';
+        outputLabel.textContent = 'Ciphertext';
+        processBtn.textContent = 'Encrypt';
+      } else {
+        inputLabel.textContent = 'Ciphertext';
+        outputLabel.textContent = 'Plaintext';
+        processBtn.textContent = 'Decrypt';
+      }
+      updateWheel();
+      process();
+    });
+  });
+
+  shiftSlider.addEventListener('input', () => { updateShift(); process(); });
+
+  document.getElementById('shiftUp').addEventListener('click', () => {
+    shift = (shift % 25) + 1;
+    shiftSlider.value = shift;
+    updateShift(); process();
+  });
+
+  document.getElementById('shiftDown').addEventListener('click', () => {
+    shift = shift <= 1 ? 25 : shift - 1;
+    shiftSlider.value = shift;
+    updateShift(); process();
+  });
+
+  processBtn.addEventListener('click', process);
+  inputText.addEventListener('input', process);
+
+  clearBtn.addEventListener('click', () => {
+    inputText.value = '';
+    outputText.value = '';
+    bruteGrid.innerHTML = '';
+    inputText.focus();
+  });
+
+  copyBtn.addEventListener('click', () => {
+    const text = outputText.value;
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy';
+        copyBtn.classList.remove('copied');
+      }, 1500);
+    });
+  });
+
+  // Init
+  updateShift();
+</script>
+</body>
+</html>
