@@ -42,7 +42,7 @@ Open `cipherlab.html` in any browser. That's it.
 
 No server. No npm. No Python. Just one `.html` file.
 
----
+----------------------------
 
 ## Feature Overview
 
@@ -74,7 +74,7 @@ No server. No npm. No Python. Just one `.html` file.
 | 24 | Fade-in panel animations | Visual |
 | 25 | Fully responsive (mobile + desktop) | Global |
 
----
+------------------------------------
 
 ## Tab Guide
 
@@ -133,7 +133,7 @@ Click either button to switch modes. Labels on the text boxes update automatical
 Below the text boxes, a live visualization shows which letter maps to which for the current shift and mode.
 
 ```
-A  B  C  D  E  F  G  ...
+A  B  C  D  E  F  G   ...
 ↕  shifts by 3 positions
 D  E  F  G  H  I  J  ...
 ```
