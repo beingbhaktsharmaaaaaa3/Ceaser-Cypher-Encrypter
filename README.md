@@ -34,7 +34,7 @@ Open `cipherlab.html` in any browser. That's it.
 ## Quick Start
 
 ```
-1. Download cipherlab.html
+1. Download index.html
 2. Open it in any modern browser (Chrome, Firefox, Edge, Safari)
 3. Type text in the Cipher tab
 4. Hit Encrypt or just start typing — output appears in real time
