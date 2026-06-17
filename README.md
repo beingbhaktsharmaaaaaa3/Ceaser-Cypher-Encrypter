@@ -4,6 +4,27 @@
 
 ---
 
+## 🚀 Quick Start
+
+### **Use Online (No Download Needed)**
+
+**[🌐 Open CipherLab Live](https://beingbhaktsharmaaaaaa3.github.io/Ceaser-Cypher-Encrypter/)**
+
+Click the link above to use the tool instantly in your browser — no installation, no downloads.
+
+### **Or Download & Run Locally**
+
+```
+1. Download index.html
+2. Open it in any modern browser (Chrome, Firefox, Edge, Safari)
+3. Type text in the Cipher tab
+4. Hit Encrypt or just start typing — output appears in real time
+```
+
+No server. No npm. No Python. Just one `.html` file.
+
+---
+
 ## 📋 Table of Contents
 
 - [What Is This?](#what-is-this)
@@ -25,24 +46,18 @@
 
 ## What Is This?
 
-**CipherLab** is a single-file, zero-dependency HTML tool that turns your browser into a full Caesar cipher cryptography lab. It was built with CEH (Certified Ethical Hacker) learners in mind, covering encryption, decryption, brute force, frequency analysis, and classical attack simulation — all in one place.
+**CipherLab** is a single-file, zero-dependency HTML tool that turns your browser into a full Caesar cipher cryptography lab. It was built with CEH (Certified Ethical Hacker) learners in mind, covering:
 
-Open `cipherlab.html` in any browser. That's it.
+- **Encryption & Decryption** (mode toggle, real-time output)
+- **Brute Force Attack** (all 25 shifts at once)
+- **Frequency Analysis** (English detection, letter distribution)
+- **Known Plaintext Attack** (if you know part of the key)
+- **Educational Reference** (history, algorithm, attack methods, CEH exam notes)
+- **Session History** (last 20 operations, reloadable)
+
+**Try it here:** [Live Demo](https://beingbhaktsharmaaaaaa3.github.io/Ceaser-Cypher-Encrypter/)
 
 ---
-
-## Quick Start
-
-```
-1. Download index.html
-2. Open it in any modern browser (Chrome, Firefox, Edge, Safari)
-3. Type text in the Cipher tab
-4. Hit Encrypt or just start typing — output appears in real time
-```
-
-No server. No npm. No Python. Just one `.html` file.
-
-----------------------------
 
 ## Feature Overview
 
@@ -74,7 +89,7 @@ No server. No npm. No Python. Just one `.html` file.
 | 24 | Fade-in panel animations | Visual |
 | 25 | Fully responsive (mobile + desktop) | Global |
 
-------------------------------------
+-------------------------------------
 
 ## Tab Guide
 
@@ -342,6 +357,7 @@ Key space: 25 keys (trivially brute-forceable)
 | Offline use | Works offline except fonts (will fall back to monospace) |
 | File size | ~35 KB |
 | Data storage | Session memory only — nothing is sent anywhere |
+| **Hosting** | **GitHub Pages** — deploy automatically from this repo |
 
 ---
 
@@ -364,6 +380,11 @@ Yes. The tool encrypts/decrypts all Latin alphabet characters regardless of lang
 
 **Can I use this for a CTF?**
 Absolutely. The brute force + frequency analysis combo is the standard approach for classic cipher challenges in CTF competitions.
+
+**Can I share this tool with others?**
+Yes! Share the live link: **[https://beingbhaktsharmaaaaaa3.github.io/Ceaser-Cypher-Encrypter/](https://beingbhaktsharmaaaaaa3.github.io/Ceaser-Cypher-Encrypter/)**
+
+No installation or downloads needed — they can use it instantly in their browser.
 
 ---
 
