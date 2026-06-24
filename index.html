@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Caesar Cipher — Encrypter & Decrypter</title>
+<title>Caesar Cipher — Advanced Encrypter & Analyzer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif&display=swap" rel="stylesheet">
 <style>
@@ -17,6 +17,7 @@
     --text: #e4ede9;
     --text-muted: #5e7a70;
     --danger: #e54b4b;
+    --success: #4bbe9b;
     --radius: 10px;
   }
 
@@ -30,17 +31,15 @@
     overflow-x: hidden;
   }
 
-  /* Noise overlay */
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect fill='%23000' width='256' height='256'/%3E%3Crect fill='%23fff' width='256' height='256' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
     opacity: 0.03;
     pointer-events: none;
     z-index: 999;
   }
 
-  /* Gradient backdrop */
   body::after {
     content: '';
     position: fixed;
@@ -54,12 +53,11 @@
   .container {
     position: relative;
     z-index: 1;
-    max-width: 860px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 3rem 1.5rem 4rem;
   }
 
-  /* Header */
   header {
     margin-bottom: 2.5rem;
   }
@@ -82,7 +80,51 @@
     text-transform: uppercase;
   }
 
-  /* Mode Toggle */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #1a2422;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.5rem;
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .tab-btn:hover {
+    color: var(--text);
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   .mode-toggle {
     display: flex;
     gap: 0;
@@ -117,7 +159,6 @@
     background: var(--surface-2);
   }
 
-  /* Shift Control */
   .shift-section {
     margin-bottom: 1.8rem;
   }
@@ -213,29 +254,6 @@
     box-shadow: 0 0 14px var(--accent-dim);
   }
 
-  .tick-marks {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 9px;
-    margin-top: -6px;
-    pointer-events: none;
-  }
-
-  .tick-marks span {
-    font-size: 0.55rem;
-    color: var(--text-muted);
-    opacity: 0.4;
-    width: 14px;
-    text-align: center;
-  }
-
-  .tick-marks span.active-tick {
-    color: var(--accent);
-    opacity: 1;
-    font-weight: 700;
-  }
-
-  /* Text Areas */
   .text-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -258,6 +276,18 @@
     letter-spacing: 0.12em;
     color: var(--text-muted);
     margin-bottom: 0.5rem;
+  }
+
+  .text-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .char-count {
+    font-size: 0.6rem;
+    color: var(--accent);
   }
 
   textarea {
@@ -292,7 +322,7 @@
     cursor: default;
   }
 
-  .copy-btn {
+  .copy-btn, .download-btn {
     position: absolute;
     top: 0.6rem; right: 0.6rem;
     font-family: 'Space Mono', monospace;
@@ -306,9 +336,14 @@
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s;
+    z-index: 10;
   }
 
-  .copy-btn:hover {
+  .download-btn {
+    right: 3rem;
+  }
+
+  .copy-btn:hover, .download-btn:hover {
     color: var(--accent);
     border-color: var(--accent);
   }
@@ -319,7 +354,6 @@
     border-color: var(--accent);
   }
 
-  /* Alphabet Wheel */
   .wheel-section {
     margin-top: 0.5rem;
   }
@@ -367,12 +401,6 @@
     transform: scale(1.1);
   }
 
-  .letter-cell.mapped {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-dim);
-  }
-
   .wheel-arrow {
     text-align: center;
     color: var(--text-muted);
@@ -381,7 +409,6 @@
     letter-spacing: 0.3em;
   }
 
-  /* Action Row */
   .action-row {
     display: flex;
     gap: 0.8rem;
@@ -425,7 +452,17 @@
     border-color: var(--danger);
   }
 
-  /* Brute Force */
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .btn-secondary:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
   .brute-section {
     border-top: 1px solid #1a2422;
     padding-top: 1.5rem;
@@ -444,7 +481,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.5rem;
-    max-height: 240px;
+    max-height: 300px;
     overflow-y: auto;
     padding-right: 0.5rem;
   }
@@ -484,7 +521,50 @@
     line-height: 1.5;
   }
 
-  /* Footer */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid #1a2422;
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .info-box {
+    background: var(--surface-2);
+    border: 1px solid #1e2b28;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .info-box strong {
+    color: var(--accent);
+  }
+
   footer {
     margin-top: 2rem;
     font-size: 0.6rem;
@@ -494,85 +574,157 @@
     letter-spacing: 0.05em;
   }
 
-  /* Animations */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  header, .mode-toggle, .shift-section, .text-section, .action-row, .wheel-section, .brute-section {
-    opacity: 0;
-    animation: fadeUp 0.5s ease forwards;
+  .container {
+    animation: fadeUp 0.5s ease;
   }
-
-  header { animation-delay: 0.05s; }
-  .mode-toggle { animation-delay: 0.1s; }
-  .shift-section { animation-delay: 0.15s; }
-  .text-section { animation-delay: 0.2s; }
-  .action-row { animation-delay: 0.25s; }
-  .wheel-section { animation-delay: 0.3s; }
-  .brute-section { animation-delay: 0.35s; }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>Caesar <span>Cipher</span></h1>
-    <p>Encrypt &middot; Decrypt &middot; Crack</p>
+    <p>Encrypt &middot; Decrypt &middot; Analyze &middot; Crack</p>
   </header>
 
-  <div class="mode-toggle">
-    <button class="mode-btn active" data-mode="encrypt">Encrypt</button>
-    <button class="mode-btn" data-mode="decrypt">Decrypt</button>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="cipher">Cipher</button>
+    <button class="tab-btn" data-tab="analysis">Analysis</button>
+    <button class="tab-btn" data-tab="guide">Guide</button>
   </div>
 
-  <div class="shift-section">
-    <div class="shift-label">
-      <span>Shift Value</span>
-      <div class="shift-arrows">
-        <button class="shift-arrow" id="shiftDown">&laquo;</button>
-        <span class="shift-value" id="shiftDisplay">3</span>
-        <button class="shift-arrow" id="shiftUp">&raquo;</button>
+  <!-- CIPHER TAB -->
+  <div id="cipher" class="tab-content active">
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="encrypt">Encrypt</button>
+      <button class="mode-btn" data-mode="decrypt">Decrypt</button>
+    </div>
+
+    <div class="shift-section">
+      <div class="shift-label">
+        <span>Shift Value</span>
+        <div class="shift-arrows">
+          <button class="shift-arrow" id="shiftDown">&laquo;</button>
+          <span class="shift-value" id="shiftDisplay">3</span>
+          <button class="shift-arrow" id="shiftUp">&raquo;</button>
+        </div>
+      </div>
+      <div class="slider-track">
+        <input type="range" id="shiftSlider" min="1" max="25" value="3">
       </div>
     </div>
-    <div class="slider-track">
-      <input type="range" id="shiftSlider" min="1" max="25" value="3">
+
+    <div class="text-section">
+      <div class="text-box">
+        <div class="text-box-header">
+          <label id="inputLabel">Plaintext</label>
+          <span class="char-count" id="inputCount">0 chars</span>
+        </div>
+        <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+      </div>
+      <div class="text-box output-area">
+        <div class="text-box-header">
+          <label id="outputLabel">Ciphertext</label>
+          <span class="char-count" id="outputCount">0 chars</span>
+        </div>
+        <textarea id="outputText" readonly placeholder="Result appears here..."></textarea>
+        <button class="download-btn" id="downloadBtn" title="Download as TXT">⬇</button>
+        <button class="copy-btn" id="copyBtn">Copy</button>
+      </div>
     </div>
-    <div class="tick-marks" id="tickMarks"></div>
-  </div>
 
-  <div class="text-section">
-    <div class="text-box">
-      <label id="inputLabel">Plaintext</label>
-      <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+    <div class="action-row">
+      <button class="btn btn-primary" id="processBtn">Encrypt</button>
+      <button class="btn btn-secondary" id="randomBtn">Random Shift</button>
+      <button class="btn btn-ghost" id="clearBtn">Clear</button>
     </div>
-    <div class="text-box output-area">
-      <label id="outputLabel">Ciphertext</label>
-      <textarea id="outputText" readonly placeholder="Result appears here..."></textarea>
-      <button class="copy-btn" id="copyBtn">Copy</button>
+
+    <div class="wheel-section">
+      <h3>Alphabet Mapping</h3>
+      <div class="wheel-row">
+        <div class="wheel-strip" id="plainRow"></div>
+        <div class="wheel-arrow">↕ shifted by <span id="wheelShiftNum">3</span> ↕</div>
+        <div class="wheel-strip" id="cipherRow"></div>
+      </div>
     </div>
-  </div>
 
-  <div class="action-row">
-    <button class="btn btn-primary" id="processBtn">Encrypt</button>
-    <button class="btn btn-ghost" id="clearBtn">Clear</button>
-  </div>
-
-  <div class="wheel-section">
-    <h3>Alphabet Mapping</h3>
-    <div class="wheel-row">
-      <div class="wheel-strip" id="plainRow"></div>
-      <div class="wheel-arrow">&#x25BC; shifted by <span id="wheelShiftNum">3</span> &#x25BC;</div>
-      <div class="wheel-strip" id="cipherRow"></div>
+    <div class="brute-section">
+      <h3>Brute Force — All 25 Shifts</h3>
+      <div class="brute-grid" id="bruteGrid"></div>
     </div>
   </div>
 
-  <div class="brute-section">
-    <h3>Brute Force — All 25 Shifts</h3>
-    <div class="brute-grid" id="bruteGrid"></div>
+  <!-- ANALYSIS TAB -->
+  <div id="analysis" class="tab-content">
+    <div class="info-box">
+      <strong>Frequency Analysis:</strong> Analyze letter frequencies in your text to find the correct shift key. Higher frequency for common letters often indicates successful decryption.
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 1rem;">Letter Frequency Chart</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 4px;" id="freqChart"></div>
+    </div>
+
+    <button class="btn btn-primary" id="suggestBtn">Suggest Best Shift</button>
   </div>
 
-  <footer>Built by MiMo &middot; Caesar Cipher Tool</footer>
+  <!-- GUIDE TAB -->
+  <div id="guide" class="tab-content">
+    <div class="info-box">
+      <strong>Caesar Cipher Basics</strong><br>
+      A Caesar cipher shifts each letter by a fixed number (the "key"). For example, with shift 3: A→D, B→E, etc.
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Formula (Encrypt)</div>
+        <div style="font-size: 0.9rem; font-family: monospace;">C = (P + K) mod 26</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Formula (Decrypt)</div>
+        <div style="font-size: 0.9rem; font-family: monospace;">P = (C - K + 26) mod 26</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Key Space</div>
+        <div style="font-size: 0.9rem; font-family: monospace;">25 possible keys</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Security</div>
+        <div style="font-size: 0.9rem; color: var(--danger);">⚠ Not secure</div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 1.5rem;">
+      <strong>Attack Methods:</strong><br><br>
+      <strong>1. Brute Force:</strong> Try all 25 possible shifts (shown in the Cipher tab).<br><br>
+      <strong>2. Frequency Analysis:</strong> Analyze letter frequencies to find the most likely shift (Analysis tab).<br><br>
+      <strong>3. Known Plaintext:</strong> If you know any word from the plaintext and its ciphertext equivalent, you can deduce the shift immediately.
+    </div>
+
+    <div class="info-box">
+      <strong>Why Caesar Cipher is Insecure:</strong><br><br>
+      • Only 25 possible keys (trivially brute-forceable)<br>
+      • Letter frequency patterns remain visible after encryption<br>
+      • No authentication or integrity checking<br>
+      • Breaks in seconds on modern computers
+    </div>
+
+    <div class="info-box">
+      <strong>Common Use Cases Today:</strong><br><br>
+      • Educational purposes<br>
+      • CTF (Capture The Flag) challenges<br>
+      • Simple obfuscation (not real security)<br>
+      • Historical/archaeological text analysis
+    </div>
+  </div>
+
+  <footer>Advanced Caesar Cipher Tool • Open Source • Perfect for Learning & CTF</footer>
 </div>
 
 <script>
@@ -593,16 +745,10 @@
   const cipherRow = document.getElementById('cipherRow');
   const wheelShiftNum = document.getElementById('wheelShiftNum');
   const bruteGrid = document.getElementById('bruteGrid');
-  const tickMarks = document.getElementById('tickMarks');
-
-  // Build tick marks
-  for (let i = 1; i <= 25; i++) {
-    const t = document.createElement('span');
-    t.textContent = i;
-    if (i === 3) t.classList.add('active-tick');
-    t.dataset.val = i;
-    tickMarks.appendChild(t);
-  }
+  const inputCount = document.getElementById('inputCount');
+  const outputCount = document.getElementById('outputCount');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const randomBtn = document.getElementById('randomBtn');
 
   function caesar(text, s, decrypt = false) {
     const dir = decrypt ? -s : s;
@@ -616,11 +762,20 @@
     }).join('');
   }
 
+  function updateCharCounts() {
+    const inLen = inputText.value.length;
+    const outLen = outputText.value.length;
+    inputCount.textContent = `${inLen} char${inLen !== 1 ? 's' : ''}`;
+    outputCount.textContent = `${outLen} char${outLen !== 1 ? 's' : ''}`;
+  }
+
   function process() {
     const text = inputText.value;
     const decrypt = mode === 'decrypt';
     outputText.value = caesar(text, shift, decrypt);
+    updateCharCounts();
     updateBruteForce();
+    updateAnalysis();
   }
 
   function updateWheel() {
@@ -642,12 +797,6 @@
     }
   }
 
-  function updateTicks() {
-    tickMarks.querySelectorAll('span').forEach(t => {
-      t.classList.toggle('active-tick', parseInt(t.dataset.val) === shift);
-    });
-  }
-
   function updateBruteForce() {
     const text = inputText.value.trim();
     bruteGrid.innerHTML = '';
@@ -656,7 +805,8 @@
     for (let s = 1; s <= 25; s++) {
       const item = document.createElement('div');
       item.className = 'brute-item';
-      item.innerHTML = `<span class="brute-num">${s}</span><span class="brute-text">${caesar(text, s, false)}</span>`;
+      const result = caesar(text, s, false);
+      item.innerHTML = `<span class="brute-num">${s}</span><span class="brute-text">${result.substring(0, 30)}${result.length > 30 ? '...' : ''}</span>`;
       item.addEventListener('click', () => {
         shift = s;
         shiftSlider.value = s;
@@ -667,12 +817,98 @@
     }
   }
 
+  function updateAnalysis() {
+    const text = inputText.value.toUpperCase();
+    const freq = {};
+
+    for (const letter of ALPHABET) {
+      freq[letter] = 0;
+    }
+
+    for (const ch of text) {
+      if (ALPHABET.includes(ch)) {
+        freq[ch]++;
+      }
+    }
+
+    const statsGrid = document.getElementById('statsGrid');
+    statsGrid.innerHTML = '';
+
+    const sorted = Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6);
+
+    for (const [letter, count] of sorted) {
+      const percent = text.length > 0 ? ((count / text.length) * 100).toFixed(1) : 0;
+      const card = document.createElement('div');
+      card.className = 'stat-card';
+      card.innerHTML = `
+        <div class="stat-label">${letter}</div>
+        <div class="stat-value">${count}</div>
+        <div style="font-size: 0.65rem; color: var(--text-muted);">${percent}%</div>
+      `;
+      statsGrid.appendChild(card);
+    }
+
+    const freqChart = document.getElementById('freqChart');
+    freqChart.innerHTML = '';
+
+    for (const letter of ALPHABET) {
+      const percent = text.length > 0 ? (freq[letter] / text.length) * 100 : 0;
+      const bar = document.createElement('div');
+      bar.style.display = 'flex';
+      bar.style.flexDirection = 'column';
+      bar.style.alignItems = 'center';
+      bar.style.gap = '4px';
+
+      const column = document.createElement('div');
+      column.style.width = '100%';
+      column.style.height = '100px';
+      column.style.backgroundColor = 'var(--surface-2)';
+      column.style.borderRadius = '4px';
+      column.style.position = 'relative';
+      column.style.overflow = 'hidden';
+
+      const fill = document.createElement('div');
+      fill.style.width = '100%';
+      fill.style.height = `${percent}%`;
+      fill.style.backgroundColor = 'var(--accent)';
+      fill.style.position = 'absolute';
+      fill.style.bottom = '0';
+      fill.style.transition = 'height 0.3s ease';
+
+      column.appendChild(fill);
+
+      const label = document.createElement('div');
+      label.textContent = letter;
+      label.style.fontSize = '0.65rem';
+      label.style.fontWeight = '700';
+      label.style.color = 'var(--accent)';
+
+      bar.appendChild(column);
+      bar.appendChild(label);
+      freqChart.appendChild(bar);
+    }
+  }
+
   function updateShift() {
     shift = parseInt(shiftSlider.value);
     shiftDisplay.textContent = shift;
     updateWheel();
-    updateTicks();
+    process();
   }
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tab).classList.add('active');
+      if (tab === 'analysis') updateAnalysis();
+    });
+  });
 
   // Mode toggle
   document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -695,18 +931,24 @@
     });
   });
 
-  shiftSlider.addEventListener('input', () => { updateShift(); process(); });
+  shiftSlider.addEventListener('input', updateShift);
 
   document.getElementById('shiftUp').addEventListener('click', () => {
     shift = (shift % 25) + 1;
     shiftSlider.value = shift;
-    updateShift(); process();
+    updateShift();
   });
 
   document.getElementById('shiftDown').addEventListener('click', () => {
     shift = shift <= 1 ? 25 : shift - 1;
     shiftSlider.value = shift;
-    updateShift(); process();
+    updateShift();
+  });
+
+  randomBtn.addEventListener('click', () => {
+    shift = Math.floor(Math.random() * 25) + 1;
+    shiftSlider.value = shift;
+    updateShift();
   });
 
   processBtn.addEventListener('click', process);
@@ -716,6 +958,7 @@
     inputText.value = '';
     outputText.value = '';
     bruteGrid.innerHTML = '';
+    updateCharCounts();
     inputText.focus();
   });
 
@@ -732,8 +975,45 @@
     });
   });
 
+  downloadBtn.addEventListener('click', () => {
+    const text = outputText.value;
+    if (!text) return;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `caesar-shift-${shift}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('suggestBtn').addEventListener('click', () => {
+    const text = inputText.value.toUpperCase();
+    if (!text) return;
+
+    const freq = {};
+    for (const letter of ALPHABET) freq[letter] = 0;
+    for (const ch of text) {
+      if (ALPHABET.includes(ch)) freq[ch]++;
+    }
+
+    const mostCommon = Object.keys(freq).reduce((a, b) => 
+      freq[a] > freq[b] ? a : b
+    );
+
+    const englishMostCommon = 'E';
+    const suggestedShift = (ALPHABET.indexOf(mostCommon) - ALPHABET.indexOf(englishMostCommon) + 26) % 26;
+
+    shift = suggestedShift === 0 ? 26 : suggestedShift;
+    shiftSlider.value = shift;
+    updateShift();
+
+    document.querySelector('[data-tab="cipher"]').click();
+  });
+
   // Init
-  updateShift();
+  updateWheel();
+  updateCharCounts();
 </script>
 </body>
 </html>
